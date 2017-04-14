@@ -1,7 +1,7 @@
 /*
 Based on object notation syntax with
 values (types) without whitespaces.
-Examples of type definition:
+Examples of type expressions:
 
 'string'
 'string|number'
@@ -10,6 +10,8 @@ Examples of type definition:
 '{ dog, cat:string }' // any dog's type
 '{ store:string, products:[ string ] }'
 */
+
+const ANY_TYPE = 'any';
 
 let index,
     charset,
@@ -82,7 +84,12 @@ const getString = divider(',]}');
 const getArray = mapper('[]', 'array', arr => {
     let val = getValue();
     if (val !== '') {
+        if (arr[0] === ANY_TYPE) {
+            arr.length = 0;
+        }
         arr.push(val);
+    } else if (! arr.length) {
+        arr.push(ANY_TYPE);
     }
     white();
 });
@@ -93,7 +100,7 @@ const getObject = mapper('{}', 'object', obj => {
         return;
     }
     if (char !== ':') {
-        obj[key] = 'any';
+        obj[key] = ANY_TYPE;
         return;
     }
     next(':');
@@ -116,18 +123,18 @@ const getValue = function() {
     }
 }
 
-export default function(def) {
-    if (typeof def !== 'string') {
+export default function(expr) {
+    if (typeof expr !== 'string') {
         return false;
     }
-    def = def.trim();
+    expr = expr.trim();
 
-    if (def[0] === '[' ||
-        def[0] === '{') {
+    if (expr[0] === '[' ||
+        expr[0] === '{') {
             index = 0;
-            charset = def;
-            char = def[0];
+            charset = expr;
+            char = expr[0];
             return getValue();   
         }
-    return def;
+    return expr;
 }

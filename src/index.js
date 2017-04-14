@@ -1,6 +1,6 @@
 import { typeEquality } from './expects.js';
 
-let defs = [
+[
     'string|number',
     '[ string ]',
     '[ array|object ]',
@@ -9,5 +9,5 @@ let defs = [
     '{ store:string, products:[] }',
     null
 ]
-
-defs.forEach(def => typeEquality(def))
+.forEach(expr =>
+    typeEquality(expr))

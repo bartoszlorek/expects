@@ -1,3 +1,16 @@
+/*
+Based on object notation syntax with
+values (types) without whitespaces.
+Examples of type definition:
+
+'string'
+'string|number'
+'[ array|object ]'
+'{ name:string, price:number }'
+'{ dog, cat:string }' // any dog's type
+'{ store:string, products:[ string ] }'
+*/
+
 let index,
     charset,
     char;
@@ -20,7 +33,7 @@ function white() {
 
 function divider(chars) {
     if (chars.length > 1) {
-        chars = chars.split('')
+        chars = chars.split('');
     }
     const test =
             typeof chars !== 'string'
@@ -63,7 +76,7 @@ function mapper(tags, type, callback) {
     }
 }
 
-const getProp = divider(':');
+const getProp = divider(':,}');
 const getString = divider(',]}');
 
 const getArray = mapper('[]', 'array', arr => {
@@ -76,6 +89,13 @@ const getArray = mapper('[]', 'array', arr => {
 
 const getObject = mapper('{}', 'object', obj => {
     let key = getProp();
+    if (key === '') {
+        return;
+    }
+    if (char !== ':') {
+        obj[key] = 'any';
+        return;
+    }
     next(':');
     let val = getValue();
     if (val !== '') {
@@ -100,8 +120,14 @@ export default function(def) {
     if (typeof def !== 'string') {
         return false;
     }
-    index = 0;
-    charset = def;
-    char = def[0];
-    return getValue();
+    def = def.trim();
+
+    if (def[0] === '[' ||
+        def[0] === '{') {
+            index = 0;
+            charset = def;
+            char = def[0];
+            return getValue();   
+        }
+    return def;
 }

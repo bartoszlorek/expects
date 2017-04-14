@@ -1,11 +1,13 @@
-import parseDefs from './typeDefine.js';
+import { typeEquality } from './expects.js';
 
 let defs = [
     'string|number',
-    '[ string|number ]',
     '[ string ]',
-    '{ name:string, price:number }',
+    '[ array|object ]',
+    '{ name: string, price: number }',
+    '[ string, { dog, cat: string|array } ]',
+    '{ store:string, products:[] }',
     null
 ]
 
-defs.forEach(def => console.log( parseDefs(def) ))
+defs.forEach(def => typeEquality(def))

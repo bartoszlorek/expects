@@ -2,7 +2,11 @@ let index,
     charset,
     char;
 
-function next() {
+function next(expected) {
+    if (expected && expected !== char) {
+        let text = charset.slice(0, index);
+        throw `Expected "${expected}" instead of "${char}" in "${text}█"`;
+    }
     index += 1;
     char = charset.charAt(index);
     return char;
@@ -14,7 +18,10 @@ function white() {
     }
 }
 
-function until(chars) {
+function divider(chars) {
+    if (chars.length > 1) {
+        chars = chars.split('')
+    }
     const test =
             typeof chars !== 'string'
         ? char => chars.indexOf(char) > -1
@@ -31,40 +38,49 @@ function until(chars) {
             }
             next();
         }
+        return text;
     }
 }
 
-function mapper(chars, type, callback) {
-    const openChar = chars[0];
-    const closeChar = chars[1];
+function mapper(tags, type, callback) {
+    const openingTag = tags[0];
+    const closingTag = tags[1];
 
     return function() {
         let wrap = type === 'object'
             ? {} : [];
-        next(); // skip open char
+            
+        next(openingTag);
         while (char) {
             callback(wrap);
-            if (char === closeChar) {
-                next(); // close
+            if (char === closingTag) {
+                next(closingTag);
                 return wrap;
             }
-            next(); // separator
+            next(',');
         }
         return wrap;
     }
 }
 
-const getProp = until(':');
-const getString = until([',',']','}']);
+const getProp = divider(':');
+const getString = divider(',]}');
 
 const getArray = mapper('[]', 'array', arr => {
-    arr.push(getValue());
+    let val = getValue();
+    if (val !== '') {
+        arr.push(val);
+    }
     white();
 });
+
 const getObject = mapper('{}', 'object', obj => {
     let key = getProp();
-    next(); // separator
-    obj[key] = getValue();
+    next(':');
+    let val = getValue();
+    if (val !== '') {
+        obj[key] = val;
+    }
     white();
 });
 
@@ -80,9 +96,12 @@ const getValue = function() {
     }
 }
 
-export default function(query) {
+export default function(def) {
+    if (typeof def !== 'string') {
+        return false;
+    }
     index = 0;
-    charset = query;
-    char = query[0];
+    charset = def;
+    char = def[0];
     return getValue();
 }

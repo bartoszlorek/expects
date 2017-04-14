@@ -1,7 +1,11 @@
-import getStructure from './structure.js';
+import parseDefs from './typeDefine.js';
 
-let query1 = '[ string, [string|number] ]',
-    query2 = '{ name:string, price:{ dog:string|number} }';
+let defs = [
+    'string|number',
+    '[ string|number ]',
+    '[ string ]',
+    '{ name:string, price:number }',
+    null
+]
 
-console.log( getStructure(query1) )
-console.log( getStructure(query2) )
+defs.forEach(def => console.log( parseDefs(def) ))

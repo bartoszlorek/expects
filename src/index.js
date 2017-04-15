@@ -1,5 +1,6 @@
-import { typeEquality } from './expects.js';
+import typeEquality from './typeEquality.js';
 
+/*
 [
     'string|number',
     '[ string ]',
@@ -10,4 +11,6 @@ import { typeEquality } from './expects.js';
     null
 ]
 .forEach(expr =>
-    typeEquality(expr))
+    typeEquality(expr))*/
+
+typeEquality('[string, [ number ]]', ['dog', [ 100 ]])

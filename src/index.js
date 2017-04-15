@@ -13,4 +13,4 @@ import typeEquality from './typeEquality.js';
 .forEach(expr =>
     typeEquality(expr))*/
 
-typeEquality('[string, [ number ]]', ['dog', [ 100 ]])
+typeEquality( '[string, [number]]', ['dog', [100]] )

@@ -20,17 +20,25 @@ const types = {
     'array': isArray,
     'null': isNull
 }
+
 export default Object.assign({
-    'any': () => true,
-    'typeof': (value) => {
-        let key = Object.keys(types),
-            len = key.length,
-            i = 0;
-        while (i < len) {
-            if (types[key[i]](value)) {
-                return key[i];
+    'typeof': (value, type) => {
+        if (typeof type === 'string') {
+            if (types.hasOwnProperty(type)) {
+                return types[type](value);
             }
-            i += 1;
+            return false;
+
+        } else {
+            let keys = Object.keys(types),
+                length = keys.length,
+                i = 0;
+            while (i < length) {
+                if (types[keys[i]](value)) {
+                    return keys[i];
+                }
+                i += 1;
+            }
         }
     }
 }, types);

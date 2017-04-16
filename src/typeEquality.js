@@ -1,23 +1,22 @@
 import TYPES from './typeTests.js';
 import parseType from './typeNotation.js';
 
+const a = function(text) {
+    let an = ['a','o'].indexOf(text[0]) > -1;
+    return (an ? 'an ' : 'a ') + text;
+}
+
 function error(type, value) {
-    let a = type[0] === 'a' || type[0] === 'o' ? 'an' : 'a',
-        wrong = TYPES.typeof(value);
-        
-    throw `"${value}" expects to be ${a} ${type} instead of ${wrong}`;
+    let wrong = TYPES.typeof(value);
+    throw `\`${value}\` expects to be ${a(type)} instead of ${a(wrong)}.`;
 }
 
 function typeOf(type, value) {
-    if (! TYPES.hasOwnProperty(type)) {
-        return true;
-    }
     // alternatives go here
 
-    if (! TYPES[type](value)) {
+    if (! TYPES.typeof(value, type)) {
         error(type, value);
     }
-    return true;
 }
 
 function compare(type, value) {
@@ -46,6 +45,9 @@ function compare(type, value) {
             }
         } else {
             let monoType = type[0];
+            if (monoType === 'any') {
+                return;
+            }
             while (i < valueLength) {
                 compare(monoType, value[i]);
                 i += 1;
@@ -55,12 +57,30 @@ function compare(type, value) {
     }
     
     if (TYPES.object(type)) {
-        console.log('obj')
+        typeOf('object', value);
+
+        let keys = Object.keys(type),
+            typeLength = keys.length,
+            typeKey,
+            i = 0;
+
+        if (typeLength === 0) {
+            return;
+        }
+        while (i < typeLength) {
+            typeKey = keys[i];
+            if (! value.hasOwnProperty(typeKey)) {
+                throw `given object doesn't have \`${typeKey}\` property.`;
+            }
+            if (type[typeKey] !== 'any') {
+                compare(type[typeKey], value[typeKey]);
+            }
+            i += 1;
+        }
     }
 }
 
 export default function(expr, value) {
     compare(parseType(expr), value);
-
     console.log('done');
 }

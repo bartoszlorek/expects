@@ -12,6 +12,7 @@ Examples of type expressions:
 */
 
 const ANY_TYPE = 'any';
+const cached = {};
 
 let index,
     charset,
@@ -128,13 +129,15 @@ export default function(expr) {
         return false;
     }
     expr = expr.trim();
-
+    if (cached.hasOwnProperty(expr)) {
+        return cached[expr];
+    }
     if (expr[0] === '[' ||
         expr[0] === '{') {
             index = 0;
             charset = expr;
             char = expr[0];
-            return getValue();   
+            return cached[expr] = getValue();
         }
     return expr;
 }

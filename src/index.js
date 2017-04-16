@@ -1,4 +1,5 @@
 import typeEquality from './typeEquality.js';
 
-//typeEquality( '[string, [number]]', ['dog', [100]] )
-typeEquality( '[string, { name, price:number }]', ['dog', { name:'Rocky', price:100 }] )
+let expr = '[string, { name, price:number }]';
+typeEquality(expr, ['dog', { name:'Rocky', price:100 }] )
+typeEquality(expr, ['cat', { name:'Kitty', price:150 }] )

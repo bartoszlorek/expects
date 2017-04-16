@@ -1,35 +1,48 @@
-import TYPES from './typeTests.js';
-import parseType from './typeNotation.js';
+import TYPES from './types.js';
 
 const a = function(text) {
     let an = ['a','o'].indexOf(text[0]) > -1;
     return (an ? 'an ' : 'a ') + text;
 }
 
-function error(type, value) {
-    let wrong = TYPES.typeof(value);
-    throw `\`${value}\` expects to be ${a(type)} instead of ${a(wrong)}.`;
-}
+function checkType(type, value, context) {
+    let valueType = TYPES.typeof(value),
+        passError = true;
 
-function typeOf(type, value) {
-    // alternatives go here
-
-    if (! TYPES.typeof(value, type)) {
-        error(type, value);
+    if (type.indexOf('|') > -1) {
+        let alternative = type.split('|'),
+            length = alternative.length,
+            i = 0;
+        while (i < length) {
+            if (alternative[i] === valueType) {
+                passError = false;
+                break;
+            }
+            i += 1;
+        }
+    }
+    if (valueType !== type && passError) {
+        if (TYPES.object(value)) {
+            value = '{'+ Object.keys(value).join(',') +'}';
+        }
+        else if (TYPES.string(context)) {
+            value = context.replace('*', value);
+        }
+        throw `\`${value}\` expects to be ${a(type)} instead of ${a(valueType)}.`;
     }
 }
 
-function compare(type, value) {
+function compare(type, value, context) {
     if (! type) {
         return;
     }
     if (TYPES.string(type)) {
-        typeOf(type, value);
+        checkType(type, value, context);
         return;
     }
 
     if (TYPES.array(type)) {
-        typeOf('array', value);
+        checkType('array', value, context);
 
         if (!type.length) {
             return;
@@ -40,7 +53,7 @@ function compare(type, value) {
         if (type.length > 1) {
             let last = type.length-1;
             while (i < valueLength) {
-                compare(type[i] || type[last], value[i]);
+                compare(type[i] || type[last], value[i], '[*]');
                 i += 1;
             }
         } else {
@@ -49,7 +62,7 @@ function compare(type, value) {
                 return;
             }
             while (i < valueLength) {
-                compare(monoType, value[i]);
+                compare(monoType, value[i], '[*]');
                 i += 1;
             }
         }  
@@ -57,7 +70,7 @@ function compare(type, value) {
     }
     
     if (TYPES.object(type)) {
-        typeOf('object', value);
+        checkType('object', value, context);
 
         let keys = Object.keys(type),
             typeLength = keys.length,
@@ -73,14 +86,11 @@ function compare(type, value) {
                 throw `given object doesn't have \`${typeKey}\` property.`;
             }
             if (type[typeKey] !== 'any') {
-                compare(type[typeKey], value[typeKey]);
+                compare(type[typeKey], value[typeKey], `{${typeKey}:*}`);
             }
             i += 1;
         }
     }
 }
 
-export default function(expr, value) {
-    compare(parseType(expr), value);
-    console.log('done');
-}
+export default compare;

@@ -22,23 +22,15 @@ const types = {
 }
 
 export default Object.assign({
-    'typeof': (value, type) => {
-        if (typeof type === 'string') {
-            if (types.hasOwnProperty(type)) {
-                return types[type](value);
+    'typeof': (value) => {
+        let keys = Object.keys(types),
+            length = keys.length,
+            i = 0;
+        while (i < length) {
+            if (types[keys[i]](value)) {
+                return keys[i];
             }
-            return false;
-
-        } else {
-            let keys = Object.keys(types),
-                length = keys.length,
-                i = 0;
-            while (i < length) {
-                if (types[keys[i]](value)) {
-                    return keys[i];
-                }
-                i += 1;
-            }
+            i += 1;
         }
     }
 }, types);

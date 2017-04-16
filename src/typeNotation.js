@@ -1,8 +1,13 @@
 /*
-Based on object notation syntax with
-values (types) without whitespaces.
-Examples of type expressions:
+Based on object notation syntax with some rules:
+- the expression is always a string value
+- white spaces are for readability purposes
+- don't use quotation marks
+- allow multidimensional data structures
+- object property without value gets type of "any"
+- array without values gets type of "any"
 
+Examples of type expressions:
 'string'
 'string|number'
 '[ array|object ]'
@@ -137,7 +142,10 @@ export default function(expr) {
             index = 0;
             charset = expr;
             char = expr[0];
-            return cached[expr] = getValue();
+            
+            let result = getValue();
+            cached[expr] = result;
+            return result;
         }
     return expr;
 }

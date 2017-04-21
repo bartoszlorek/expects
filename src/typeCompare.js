@@ -1,13 +1,21 @@
 import TYPES from './types.js';
 
-const a = function(text) {
-    let an = ['a','o'].indexOf(text[0]) > -1;
-    return (an ? 'an ' : 'a ') + text;
+function errorType(type, value, context) {
+    const valueType = TYPES.typeof(value);
+    const a = text => (['a','o'].indexOf(text[0]) > -1
+        ? 'an ' : 'a ') + text;
+
+    if (TYPES.object(value)) {
+        value = '{'+ Object.keys(value).join(',') +'}';
+
+    } else if (TYPES.string(context)) {
+        value = context.replace('*', value);
+    }
+    return `\`${value}\` expects to be ${a(type)} instead of ${a(valueType)}.`;
 }
 
-function checkType(type, value, context) {
-    let valueType = TYPES.typeof(value),
-        passError = true;
+function checkType(type, value) {
+    const valueType = TYPES.typeof(value);
 
     if (type.indexOf('|') > -1) {
         let alternative = type.split('|'),
@@ -15,37 +23,34 @@ function checkType(type, value, context) {
             i = 0;
         while (i < length) {
             if (alternative[i] === valueType) {
-                passError = false;
-                break;
+                return true;
             }
             i += 1;
         }
     }
-    if (valueType !== type && passError) {
-        if (TYPES.object(value)) {
-            value = '{'+ Object.keys(value).join(',') +'}';
-        }
-        else if (TYPES.string(context)) {
-            value = context.replace('*', value);
-        }
-        throw `\`${value}\` expects to be ${a(type)} instead of ${a(valueType)}.`;
-    }
+    return valueType === type;
 }
 
 function compare(type, value, context) {
+    let result;
+
+    console.log(type, value)
+
     if (! type) {
-        return;
+        return 'success';
     }
     if (TYPES.string(type)) {
-        checkType(type, value, context);
-        return;
+        if (! checkType(type, value)) {
+            return errorType(type, value, context);
+        }
     }
 
-    if (TYPES.array(type)) {
-        checkType('array', value, context);
-
+    else if (TYPES.array(type)) {
+        if (! checkType('array', value)) {
+            return errorType('array', value, context);
+        }
         if (!type.length) {
-            return;
+            return 'success';
         }
         let valueLength = value.length,
             i = 0;
@@ -53,44 +58,55 @@ function compare(type, value, context) {
         if (type.length > 1) {
             let last = type.length-1;
             while (i < valueLength) {
-                compare(type[i] || type[last], value[i], '[*]');
+                result = compare(type[i] || type[last], value[i], '[*]');
+                if (result !== 'success') {
+                    return result;
+                }
                 i += 1;
             }
         } else {
             let monoType = type[0];
             if (monoType === 'any') {
-                return;
+                return 'success';
             }
             while (i < valueLength) {
-                compare(monoType, value[i], '[*]');
+                result = compare(monoType, value[i], '[*]');
+                if (result !== 'success') {
+                    return result;
+                }
                 i += 1;
             }
-        }  
-        return;
+        }
     }
     
-    if (TYPES.object(type)) {
-        checkType('object', value, context);
-
+    else if (TYPES.object(type)) {
+        if (! checkType('object', value)) {
+            return errorType('object', value, context);
+        }
         let keys = Object.keys(type),
             typeLength = keys.length,
             typeKey,
             i = 0;
 
         if (typeLength === 0) {
-            return;
+            return 'success';
         }
         while (i < typeLength) {
             typeKey = keys[i];
             if (! value.hasOwnProperty(typeKey)) {
-                throw `given object doesn't have \`${typeKey}\` property.`;
+                return `given object doesn't have \`${typeKey}\` property.`;
             }
             if (type[typeKey] !== 'any') {
-                compare(type[typeKey], value[typeKey], `{${typeKey}:*}`);
+                result = compare(type[typeKey], value[typeKey], `{${typeKey}:*}`);
+                if (result !== 'success') {
+                    return result;
+                }
             }
             i += 1;
         }
     }
+    
+    return 'success';
 }
 
 export default compare;

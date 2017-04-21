@@ -1,36 +1,55 @@
-function isTypeOf(name) {
-    return value => typeof value === name;
+const isArray = Array.isArray || function(value) {
+    return isTypeof('Array', value);
 }
+
+function isTypeof(name, value) {
+    return Object.prototype.toString.call(value) === '[object '+ name +']';
+}
+
+function isUndefined(value) {
+    return value === undefined;
+}
+
 function isNull(value) {
     return value === null;
 }
-function isObject(value) {
-    return value !== null && typeof value === 'object' && !isArray(value);
-}
-function isArray(value) {
-    return Object.prototype.toString.call(value) === '[object Array]';
+
+function isNaN(value) {
+    return value !== value;
 }
 
-const types = {
-    'string': isTypeOf('string'),
-    'number': isTypeOf('number'),
-    'boolean': isTypeOf('boolean'),
-    'function': isTypeOf('function'),
+function isNumber(value) {
+    return !isNaN(value) && isTypeof('Number', value);
+}
+
+function isString(value) {
+    return isTypeof('String', value);
+}
+
+function isObject(value) {
+    return value !== null && isTypeof('Object', value) && !isArray(value);
+}
+
+function isFunction(value) {
+    return typeof value === 'function' || isTypeof('Function', value);
+}
+
+function isBoolean(value) {
+    return value === true || value === false || isTypeof('Boolean', value);
+}
+
+function isRegExp(value) {
+    return isTypeof('RegExp', value);
+}
+
+export default {
+    'string': isString,
+    'number': isNumber,
+    'boolean': isBoolean,
+    'function': isFunction,
+    'undefined': isUndefined,
     'object': isObject,
     'array': isArray,
-    'null': isNull
+    'null': isNull,
+    'regex': isRegExp
 }
-
-export default Object.assign({
-    'typeof': (value) => {
-        let keys = Object.keys(types),
-            length = keys.length,
-            i = 0;
-        while (i < length) {
-            if (types[keys[i]](value)) {
-                return keys[i];
-            }
-            i += 1;
-        }
-    }
-}, types);

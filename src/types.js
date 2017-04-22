@@ -1,13 +1,54 @@
-const isArray = Array.isArray || function(value) {
-    return isTypeof('Array', value);
+export {
+    forEachType,
+    typeOf
 }
 
-function isTypeof(name, value) {
+const types = {
+    'string': isString,
+    'number': isNumber,
+    'nan': isNaN,
+    'boolean': isBoolean,
+    'function': isFunction,
+    'undefined': isUndefined,
+    'object': isObject,
+    'array': isArray,
+    'null': isNull,
+    'regex': isRegExp,
+    'date': isDate
+}
+
+function forEachType(callback) {
+    let key = Object.keys(types),
+        len = key.length,
+        result,
+        i = 0;
+        
+    while (i < len) {
+        result = callback(key[i], types[key[i]]);
+        if (result === false) {
+            return;
+        }
+        if (!isUndefined(result)) {
+            return result;
+        }
+        i += 1;
+    }
+}
+
+function typeOf(value) {
+    return forEachType((name, test) => {
+        if (test(value)) {
+            return name;
+        }
+    });
+}
+
+function isTypeofProto(name, value) {
     return Object.prototype.toString.call(value) === '[object '+ name +']';
 }
 
 function isUndefined(value) {
-    return value === undefined;
+    return typeof value === 'undefined';
 }
 
 function isNull(value) {
@@ -19,37 +60,33 @@ function isNaN(value) {
 }
 
 function isNumber(value) {
-    return !isNaN(value) && isTypeof('Number', value);
+    return !isNaN(value) && isTypeofProto('Number', value);
 }
 
 function isString(value) {
-    return isTypeof('String', value);
-}
-
-function isObject(value) {
-    return value !== null && isTypeof('Object', value) && !isArray(value);
-}
-
-function isFunction(value) {
-    return typeof value === 'function' || isTypeof('Function', value);
-}
-
-function isBoolean(value) {
-    return value === true || value === false || isTypeof('Boolean', value);
+    return isTypeofProto('String', value);
 }
 
 function isRegExp(value) {
-    return isTypeof('RegExp', value);
+    return isTypeofProto('RegExp', value);
 }
 
-export default {
-    'string': isString,
-    'number': isNumber,
-    'boolean': isBoolean,
-    'function': isFunction,
-    'undefined': isUndefined,
-    'object': isObject,
-    'array': isArray,
-    'null': isNull,
-    'regex': isRegExp
+function isDate(value) {
+    return isTypeofProto('Date', value);
+}
+
+function isBoolean(value) {
+    return value === true || value === false || isTypeofProto('Boolean', value);
+}
+
+function isObject(value) {
+    return value !== null && isTypeofProto('Object', value) && !isArray(value);
+}
+
+function isArray(value) {
+    return isTypeofProto('Array', value);
+}
+
+function isFunction(value) {
+    return typeof value === 'function' || isTypeofProto('Function', value);
 }

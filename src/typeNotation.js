@@ -23,6 +23,73 @@ let index,
     charset,
     char;
 
+export default function(expr) {
+    if (typeof expr !== 'string') {
+        return false;
+    }
+    expr = expr.trim();
+    if (cached.hasOwnProperty(expr)) {
+        return cached[expr];
+    }
+    if (expr[0] === '[' ||
+        expr[0] === '{') {
+            index = 0;
+            charset = expr;
+            char = expr[0];
+            
+            let result = getValue();
+            cached[expr] = result;
+            return result;
+        }
+    return expr;
+}
+
+const getProp = divider(':,}');
+const getString = divider(',]}');
+const getArray = mapper('[]', 'array', arr => {
+    let val = getValue();
+    if (val !== '') {
+        if (arr[0] === ANY_TYPE) {
+            arr.length = 0;
+        }
+        arr.push(val);
+    } else if (! arr.length) {
+        arr.push(ANY_TYPE);
+    }
+    white();
+});
+
+const getObject = mapper('{}', 'object', obj => {
+    let key = getProp();
+    if (key === '') {
+        return;
+    }
+    if (char !== ':') {
+        obj[key] = ANY_TYPE;
+        return;
+    }
+    next(':');
+    let val = getValue();
+    if (val !== '') {
+        obj[key] = val;
+    }
+    white();
+});
+
+const getValue = function() {
+    white();
+    switch(char) {
+        case '[':
+            return getArray();
+        case '{':
+            return getObject();
+        default:
+            return getString();
+    }
+}
+
+/* ---------------------------------------- */
+
 function next(expected) {
     if (expected && expected !== char) {
         let text = charset.slice(0, index);
@@ -82,70 +149,4 @@ function mapper(tags, type, callback) {
         }
         return wrap;
     }
-}
-
-const getProp = divider(':,}');
-const getString = divider(',]}');
-
-const getArray = mapper('[]', 'array', arr => {
-    let val = getValue();
-    if (val !== '') {
-        if (arr[0] === ANY_TYPE) {
-            arr.length = 0;
-        }
-        arr.push(val);
-    } else if (! arr.length) {
-        arr.push(ANY_TYPE);
-    }
-    white();
-});
-
-const getObject = mapper('{}', 'object', obj => {
-    let key = getProp();
-    if (key === '') {
-        return;
-    }
-    if (char !== ':') {
-        obj[key] = ANY_TYPE;
-        return;
-    }
-    next(':');
-    let val = getValue();
-    if (val !== '') {
-        obj[key] = val;
-    }
-    white();
-});
-
-const getValue = function() {
-    white();
-    switch(char) {
-        case '[':
-            return getArray();
-        case '{':
-            return getObject();
-        default:
-            return getString();
-    }
-}
-
-export default function(expr) {
-    if (typeof expr !== 'string') {
-        return false;
-    }
-    expr = expr.trim();
-    if (cached.hasOwnProperty(expr)) {
-        return cached[expr];
-    }
-    if (expr[0] === '[' ||
-        expr[0] === '{') {
-            index = 0;
-            charset = expr;
-            char = expr[0];
-            
-            let result = getValue();
-            cached[expr] = result;
-            return result;
-        }
-    return expr;
 }

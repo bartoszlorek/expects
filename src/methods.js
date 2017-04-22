@@ -1,37 +1,70 @@
-const defined = {};
+import { typeOf } from './types.js';
 
-function assign(method, defaultValue) {
-    return {
-        filter: value => method(value) === true ? value : defaultValue,
-        method: method.bind(null)
-    }
+export default {
+    typeof: typeOf,
+    define: defineMethod,
+    filter: filterOut,
+    fallback: changeFallback,
+    is: isMethod
 }
 
-function define(name, method, defaultValue) {
+const defined = {};
+const an = function(text) {
+    let isVowel = ['a','o','i','e','u','y'].indexOf(text[0]) > -1;
+    return (isVowel ? 'an ' : 'a ') + text;
+}
+
+function validate(name, value) {
+    if (typeof name !== 'string') {
+        throw 'first parameter must be a defined name';
+    }
+    return typeof value !== 'undefined'
+        && defined.hasOwnProperty(name);
+}
+
+function defineMethod(name, test, fallback) {
     if (typeof name !== 'string' || defined.hasOwnProperty(name)) {
         throw 'first parameter must be a unique name, not already defined';
     }
-    if (typeof method !== 'function') {
-        throw 'second parameter must be a function'; 
+    if (typeof test !== 'function') {
+        throw 'second parameter must be a function';
     }
-    defined[name] = assign(method, defaultValue);
+    let shouldBeBoolean = test();
+    if (typeOf(shouldBeBoolean) !== 'boolean') {
+        throw 'second parameter must return a boolean value';
+    }
+    defined[name] = {
+        test: test.bind(null),
+        fallback
+    }
     return this;
 }
 
-function validate(method) {
-    return (name, value) => {
-        if (typeof name !== 'string') {
-            throw 'first parameter must be a defined name';
-        }
-        if (typeof value === 'undefined' || !defined.hasOwnProperty(name)) {
-            return false;
-        }
-        return defined[name][method](value);
+function filterOut(name, value) {
+    if (!validate(name, value)) {
+        return;
     }
+    let def = defined[name];
+    if (def.test(value)) {
+        return value;
+    }
+    if (typeof def.fallback === 'undefined') {
+        let valueType = typeOf(value);
+        throw `\`${value}\` [${valueType}] expects to be ${an(name)}`;
+    }
+    return def.fallback;
 }
 
-export default {
-    define,
-    filter: validate('filter'),
-    is: validate('method')
+function isMethod(name, value) {
+    if ( validate(name, value)) {
+        return defined[name].test(value);
+    }
+    return false;
+}
+
+function changeFallback(name, value) {
+    if (validate(name, value)) {
+        defined[name].fallback = value;
+    }
+    return this;
 }

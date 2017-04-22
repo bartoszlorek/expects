@@ -8,14 +8,11 @@ expects('{product:string, price:number}')
 
 import parseType from './typeNotation.js';
 import methods from './methods.js';
-import types from './types.js';
+import { forEachType } from './types.js';
 
-// initialize predefined types
-for (let name in types) {
-    if (types.hasOwnProperty(name)) {
-        methods.define(name, types[name]);
-    }
-}
+forEachType((name, test) => {
+    methods.define(name, test);
+});
 
 function expects(value, expr) {
     if (typeof expr !== 'string') {

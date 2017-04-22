@@ -10,10 +10,15 @@
 
     //expects(null, '[string, { name: string & addString, price: string|number }]');
 
-    expects.define('greaterOrEqual', value => value > 20, 20);
 
-    console.log( expects.filter( 'greaterOrEqual', 15 ));
-    console.log( expects.filter( 'greaterOrEqual', 25 ));
-    console.log( expects.filter( 'greaterOrEqual', 35 ));
+    expects.define('greaterThan20', value => value > 20, 'fail');
+
+    console.log( expects.filter( 'greaterThan20', 15 ));
+    console.log( expects.filter( 'greaterThan20', 25 ));
+    console.log( expects.filter( 'greaterThan20', 35 ));
+
+    console.log( expects.is( 'greaterThan20', 15 ));
+    console.log( expects.is( 'greaterThan20', 25 ));
+    console.log( expects.is( 'greaterThan20', 35 ));
 
 }())

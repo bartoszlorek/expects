@@ -6,21 +6,25 @@ expects('[string,number,number]')
 expects('{product:string, price:number}')
 */
 
-import parseType from './typeNotation.js';
+import parse from './parse.js';
 import methods from './methods.js';
+
 import { forEachType } from './types.js';
+import createCompare from './compare.js';
+const compare = createCompare(methods);
 
 forEachType((name, test) => {
     methods.define(name, test);
 });
 
-function expects(value, expr) {
+function expects(expr, value) {
     if (typeof expr !== 'string') {
-        throw 'second parameter must be an expression'
+        throw 'first parameter must be an expression'
     }
-    
-    let parsed = parseType(expr);
-    console.log( parsed );
+    let parsed = parse(expr),
+        result = compare(parsed, value);
+
+    console.log(result);
 }
 
 module.exports = Object.assign(

@@ -20,7 +20,7 @@ Examples of type expressions:
 import createCache from './cache.js';
 const cache = createCache(20);
 
-const ANY_TYPE = 'any';
+const ANY_TYPE = '*';
 const BINARY_OP = {
     '|': 1,
     '&': 2
@@ -53,33 +53,41 @@ const getToken = divider('|&,]}{[');
 const getBinaryOp = operator(BINARY_OP);
 
 const getArray = mapper('[]', 'array', map => {
-    let val = getValue();
-    if (val.value !== ANY_TYPE) {
-        if (map.length && map[0].value === ANY_TYPE) {
+    let item = getValue();
+    if (map.length > 0 &&
+        item.value === ANY_TYPE) {
+            return;
+        }
+    if (map.length === 1 &&
+        map[0].value === ANY_TYPE) {
             map.length = 0;
         }
-        map.push(val);
-    } else if (!map.length) {
-        map.push(val);
-    }
+    map.push(item);
     white();
 });
 
 const getObject = mapper('{}', 'object', map => {
-    let key = getProp();
-    if (key === '') {
+    let key = getProp(),
+        item;
+    if (key === '' && map.length) {
         return;
     }
-    if (char !== ':') {
-        map.push(block('value', ANY_TYPE, key));
+    if (map.length === 1 &&
+        map[0].prop === ANY_TYPE) {
+            map.length = 0;
+        }
+    if (key === '' || char !== ':') {
+        map.push(block({
+            type: 'value',
+            prop: key || ANY_TYPE,
+            value: ANY_TYPE
+        }));
         return;
     }
     next(':');
-    let val = getValue();
-    if (val !== '') {
-        val.prop = key;
-        map.push(val);
-    }
+    item = getValue();
+    item.prop = key;
+    map.push(item);
     white();
 });
 
@@ -92,52 +100,67 @@ const getValue = function() {
     }
 }
 
-// implementation of recursive descent by Steve Oney
+// based on implementation of recursive descent by Steve Oney
 // from JavaScript Expression Parser (JSEP) http://jsep.from.so/
 // MIT license
 
 function getBinaryExpression() {
-    let stack, node, left, right, biop, biopInfo, prec, i;
+    let left = getToken(),
+        biop = getBinaryOp(),
+        right;
 
-    left = getToken();
-    biop = getBinaryOp();
-
-    if (!biop) {
+    if (!biop || left === '') {
         return block('value', left);
     }
-    biopInfo = { value: biop, prec: binaryPrecedence(biop) };
-    right = getToken();
-    stack = [ left, biopInfo, right ];
-
-    while((biop = getBinaryOp())) {
-        prec = binaryPrecedence(biop);
-        if (prec === 0) {
-            break;
-        }
-        biopInfo = { value: biop, prec: prec };
-
-        while ((stack.length > 2) && (prec <= stack[stack.length-2].prec)) {
-            right = stack.pop();
-            biop = stack.pop().value;
-            left = stack.pop();
-            node = [left, biop, right];
-            stack.push(node);
-        }
-        node = getToken();
-        stack.push(biopInfo, node);
+    if ((right = getToken()) === '') {
+        return block('value', left);
     }
+    else {
+        let biopInfo = {
+                prec: binaryPrecedence(biop),
+                value: biop
+            },
+            stack = [ left, biopInfo, right ],
+            expr = [ left, biop, right ],
+            node,
+            prec,
+            i;
 
-    i = stack.length - 1;
-    node = stack[i];
-    while (i > 1) {
-        node = [
-            stack[i-2],
-            stack[i-1].value,
-            node
-        ];
-        i -= 2;
+        while((biop = getBinaryOp())) {
+            prec = binaryPrecedence(biop);
+            if (prec === 0) {
+                break;
+            }
+            biopInfo = { value: biop, prec: prec };
+
+            while ((stack.length > 2) && (prec <= stack[stack.length-2].prec)) {
+                right = stack.pop();
+                biop = stack.pop().value;
+                left = stack.pop();
+                node = [left, biop, right];
+                stack.push(node);
+            }
+            node = getToken();
+            stack.push(biopInfo, node);
+            expr.push(biop, node);
+        }
+        
+        i = stack.length - 1;
+        node = stack[i];
+        while (i > 1) {
+            node = [
+                stack[i-2],
+                stack[i-1].value,
+                node
+            ];
+            i -= 2;
+        }
+        return block({
+            type: 'value',
+            value: node,
+            expression: expr.join(' ')
+        });
     }
-    return block('value', node);
 }
 
 function binaryPrecedence(biop) {
@@ -221,13 +244,15 @@ function mapper(tags, type, callback) {
     }
 }
 
-function block(type, value, prop) {
-    let data = {
-        type: type || 'value',
-        value: value || ANY_TYPE
+function block(data, value) {
+    if (typeof data === 'string') {
+        data = {
+            type: data,
+            value
+        }
     }
-    if (typeof prop === 'string') {
-        data.prop = prop;
+    if (!data.value) {
+         data.value = ANY_TYPE;
     }
     return data;
 }

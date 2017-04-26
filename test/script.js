@@ -1,24 +1,29 @@
 (function() {
 
-    /*let expr = '[string!empty, { name, price:string|number }]',
-        arrayA = ['dog', { name:'Rocky', price:100 }],
-        arrayB = ['cat', { name:'Kitty', price:'150' }];
+    let expr = '[string, { name, price: string|number }]',
+        dataA = ['dog', { name: 'Rocky', price: 100 }],
+        dataB = ['cat', { name: 'Kitty', price: '150' }];
 
-    arrayA = expects(arrayA, expr);
-    arrayB = expects(arrayB, expr);
-    console.log(arrayA, arrayB);*/
+    dataA = expects(expr, dataA);
+    dataB = expects(expr, dataB);
 
-    //expects(null, '[string, { name: string & addString, price: string|number }]');
+    console.log(expr, dataA, dataB);
 
-
-    expects.define('greaterThan20', value => value > 20, 'fail');
+    /*expects.define('greaterThan20', value => value > 20, 'fdail');
 
     console.log( expects.filter( 'greaterThan20', 15 ));
     console.log( expects.filter( 'greaterThan20', 25 ));
     console.log( expects.filter( 'greaterThan20', 35 ));
 
-    console.log( expects.is( 'greaterThan20', 15 ));
+    console.log( '----' );
+
+    console.log( expects.is( 'greaterThan20', 25 ));
     console.log( expects.is( 'greaterThan20', 25 ));
     console.log( expects.is( 'greaterThan20', 35 ));
+
+    console.log( '----' );
+
+    console.log( expects.exists( 'string' ));
+    console.log( expects.exists( 1233 ));*/
 
 }())

@@ -1,6 +1,6 @@
 import parse from './parse.js';
 import methods from './methods.js';
-import { forEachType } from './types.js';
+import types, { forEachType } from './types.js';
 import createCompare from './compare.js';
 const compare = createCompare(methods);
 
@@ -9,7 +9,7 @@ forEachType((name, test) => {
 });
 
 function expects(expr, value) {
-    if (typeof expr !== 'string') {
+    if (!types.isString(expr)) {
         throw 'first parameter must be an expression'
     }
     return compare(

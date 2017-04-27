@@ -1,4 +1,4 @@
-import { typeOf } from './types.js';
+import types, { typeOf } from './types.js';
 import error from './error.js';
 
 export default {
@@ -12,16 +12,20 @@ export default {
 
 const defined = {};
 
+function existsMethod(name) {
+    return types.isString(name)
+        && defined.hasOwnProperty(name);
+}
+
 function defineMethod(name, test, fallback) {
-    if (typeof name !== 'string' ||
-        defined.hasOwnProperty(name)) {
-            error('unique');
-        }
-    if (typeof test !== 'function') {
+    if ( existsMethod(name)) {
+        error('unique');
+    }
+    if (!types.isFunction(test)) {
         error('func');
     }
-    let beBoolean = test();
-    if (typeof beBoolean !== 'boolean') {
+    let shouldBeBoolean = test();
+    if (!types.isBoolean(shouldBeBoolean)) {
         error('bool');
     }
     defined[name] = {
@@ -29,11 +33,6 @@ function defineMethod(name, test, fallback) {
         fallback
     }
     return this;
-}
-
-function existsMethod(name) {
-    return typeof name === 'string' &&
-        defined.hasOwnProperty(name);
 }
 
 function validateName(name, ignoreError) {
@@ -45,7 +44,7 @@ function validateName(name, ignoreError) {
 
 function handleFallback(name, value) {
     validateName(name);
-    if (typeof value === 'undefined') {
+    if (types.isUndefined(value)) {
         return defined[name].fallback;
     }
     defined[name].fallback = value;
@@ -65,7 +64,7 @@ function filterValue(name, value) {
         return value;
     } else {
         let fallback = method.fallback;
-        if (typeof fallback === 'undefined') {
+        if (types.isUndefined(fallback)) {
             error('expects')(name, value);
         } return fallback;
     }

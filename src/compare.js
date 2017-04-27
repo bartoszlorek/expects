@@ -1,9 +1,10 @@
+import types from './types.js';
 import error from './error.js';
 
 const ANY_TYPE = '*';
 
 export default function(context) {
-    if (! (context && typeof context.typeof === 'function')) {
+    if (! (context && types.isFunction(context.typeof))) {
         throw 'incorrect context of comparison';
     }
 
@@ -18,20 +19,20 @@ export default function(context) {
     };
 
     function testOperand(operand, value) {
-        if (typeof operand === 'string') {
+        if (types.isString(operand)) {
             return context.is(operand, value);
         } return !!operand;
     }
 
     function getOperand(operand, value) {
-        if (typeof operand !== 'string') {
+        if (!types.isString(operand)) {
             return compareBinary(operand, value);
         } return operand;
     }
 
     function compareBinary(block, value) {
         let binaryMethod = binary[block[1]];
-        if (typeof binaryMethod !== 'undefined') {
+        if (!types.isUndefined(binaryMethod)) {
             let left  = getOperand(block[0], value),
                 right = getOperand(block[2], value);
             return binaryMethod(left, right, value);
@@ -39,14 +40,14 @@ export default function(context) {
     }
 
     function getFallback(operand) {
-        if (typeof operand !== 'string') {
+        if (!types.isString(operand)) {
              return blockFallback(operand);
         } return context.fallback(operand);
     }
 
     function blockFallback(block) {
         let left = getFallback(block[0]);
-        if (typeof left === 'undefined') {
+        if (types.isUndefined(left)) {
             return getFallback(block[2]);
         } return left;
     }
@@ -56,15 +57,15 @@ export default function(context) {
             blockValue = block.value;
 
         if (blockType === 'value') {
-            if (context.is('string', blockValue)) {
+            if (types.isString(blockValue)) {
                 return context.filter(blockValue, value);
             }
-            if (context.is('array', blockValue)) {
+            if (types.isArray(blockValue)) {
                 if (compareBinary(blockValue, value)) {
                     return value;
                 }
                 let fallback = blockFallback(blockValue);
-                if (typeof fallback === 'undefined') {
+                if (types.isUndefined(fallback)) {
                     error('expects')(block.expression, value);
                 }
                 return fallback;

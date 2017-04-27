@@ -1,30 +1,43 @@
+const types = {
+    isString,
+    isNumber,
+    isNaN,
+    isBoolean,
+    isFunction,
+    isUndefined,
+    isObject,
+    isArray,
+    isNull,
+    isRegExp,
+    isDate
+}
+
+export default types;
 export {
     forEachType,
     typeOf
 }
 
-const types = {
-    'string': isString,
-    'number': isNumber,
-    'nan': isNaN,
-    'boolean': isBoolean,
-    'function': isFunction,
-    'undefined': isUndefined,
-    'object': isObject,
-    'array': isArray,
-    'null': isNull,
-    'regex': isRegExp,
-    'date': isDate
-}
+const typesMap = Object
+    .keys(types)
+    .map(type => [type
+        .slice(2)
+        .toLowerCase(),
+    type]);
+
+const typesLength = typesMap.length;
 
 function forEachType(callback) {
-    let key = Object.keys(types),
-        len = key.length,
-        result,
+    let result,
+        type,
         i = 0;
         
-    while (i < len) {
-        result = callback(key[i], types[key[i]]);
+    while (i < typesLength) {
+        type = typesMap[i];
+        result = callback(
+            type[0],
+            types[type[1]]
+        );
         if (result === false) {
             return;
         }

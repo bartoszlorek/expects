@@ -1,4 +1,4 @@
-import { typeOf } from './types.js';
+import types, { typeOf } from './types.js';
 
 const an = function(text) {
     let isVowel = ['a','o','i','e','u','y']
@@ -27,7 +27,7 @@ export default function(msgName) {
         return;
     }
     let msg = message[msgName];
-    if (typeof msg === 'function') {
+    if (types.isFunction(msg)) {
         return msg;
     }
     throw msg;

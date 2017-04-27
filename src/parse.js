@@ -17,6 +17,7 @@ Examples of type expressions:
 '{ store:string, products:[ string ] }'
 */
 
+import types from './types.js';
 import createCache from './cache.js';
 const cache = createCache(20);
 
@@ -31,7 +32,7 @@ let index,
     char;
 
 export default function(expr) {
-    if (typeof expr !== 'string') {
+    if (!types.isString(expr)) {
         throw 'first parameter must be a string';
     }
     expr = expr.trim();
@@ -191,8 +192,7 @@ function divider(chars) {
     if (chars.length > 1) {
         chars = chars.split('');
     }
-    const test =
-            typeof chars !== 'string'
+    const test = !types.isString(chars)
         ? char => chars.indexOf(char) !== -1
         : char => chars === char;
 
@@ -245,7 +245,7 @@ function mapper(tags, type, callback) {
 }
 
 function block(data, value) {
-    if (typeof data === 'string') {
+    if (types.isString(data)) {
         data = {
             type: data,
             value

@@ -11,14 +11,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/ubery/expects.git"
+        "url": "git+https://github.com/bartoszlorek/expects.git"
     },
     "author": "Bartosz Lorek",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/ubery/expects/issues"
+        "url": "https://github.com/bartoszlorek/expects/issues"
     },
-    "homepage": "https://github.com/ubery/expects#readme",
+    "homepage": "https://github.com/bartoszlorek/expects#readme",
     "devDependencies": {
         "babel-core": "^6.24.0",
         "babel-loader": "^6.4.1",
